@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
 import { useTheme } from "@/context/ThemeProvider";
@@ -46,48 +46,39 @@ const ViewNote = () => {
     }, 3000);
   };
 
-  const handleExport = async () => {
-    try {
-      if (!title) {
-        Alert.alert("Error", "Note title is required to export.");
-        return;
-      }
-
-      const cleanTitle = title.replace(/[/\\?%*:|"<>]/g, "-") || "note";
-      const fileName = `${cleanTitle}.md`;
-      const markdownContent = `# ${title}\n\n${note}`;
-
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      await FileSystem.writeAsStringAsync(fileUri, markdownContent);
-
-      if (Platform.OS === "android") {
-        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (permissions.granted) {
-          const directoryUri = permissions.directoryUri;
-          const safUri = await FileSystem.StorageAccessFramework.createFileAsync(
-            directoryUri,
-            fileName,
-            "text/markdown"
-          );
-          await FileSystem.writeAsStringAsync(safUri, markdownContent);
-          showToast(`Exported successfully as ${fileName}`);
-        } else {
-          await Sharing.shareAsync(fileUri);
-          showToast(`Exported successfully`);
-        }
-      } else {
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri);
-          showToast(`Exported successfully`);
-        } else {
-          Alert.alert("Error", "Sharing is not available on this device.");
-        }
-      }
-    } catch (err) {
-      console.error("Export error:", err);
-      Alert.alert("Error", "Failed to export note.");
+const handleExport = async () => {
+  try {
+    if (!title) {
+      Alert.alert("Error", "Note title is required to export.");
+      return;
     }
-  };
+
+    const cleanTitle =
+      title.replace(/[/\\?%*:|"<>]/g, "-") || "note";
+
+    const fileName = `${cleanTitle}.md`;
+
+    // Preserve markdown exactly for Obsidian
+    const markdownContent = `# ${title}\n\n${note}`;
+
+    const file = new File(Paths.cache, fileName);
+
+    await file.write(markdownContent);
+
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(file.uri);
+      showToast(`Exported successfully`);
+    } else {
+      Alert.alert(
+        "Error",
+        "Sharing is not available on this device."
+      );
+    }
+  } catch (err) {
+    console.error("Export error:", err);
+    Alert.alert("Error", "Failed to export note.");
+  }
+};
 
   function escapeRegExp(str: string) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
