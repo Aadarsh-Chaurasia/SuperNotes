@@ -6,8 +6,9 @@ import {
     type ThemeKey,
 } from "@/styles/theme.styles";
 import { styled } from "nativewind";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, TouchableOpacity } from "react-native";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
+import handleLogout from "@/utils/authHandler.util";
 
 const SafeAreaView = styled(RNSafeAreaView);
 
@@ -96,29 +97,22 @@ export default function Profile() {
           })}
         </View>
 
-        <View
-          className="profile-footer"
-          style={[
-            profileStyles.footer,
-            {
-              backgroundColor: currentTheme.surface,
-              borderColor: currentTheme.border,
-            },
-          ]}
-        >
-          <Text
-            style={[profileStyles.footerTitle, { color: currentTheme.text }]}
-          >
-            Theme selection
-          </Text>
-          <Text
-            style={[profileStyles.footerText, { color: currentTheme.muted }]}
-          >
-            Your chosen theme is saved locally and will be available for the
-            next design pass.
-          </Text>
-        </View>
+        
       </View>
+      <TouchableOpacity
+          onPress={handleLogout}
+          style={{
+            marginTop: 30,
+            backgroundColor: "red",
+            padding: 14,
+            borderRadius: 8,
+            margin: 24,
+          }}
+        >
+          <Text style={{ color: "white", textAlign: "center" }}>
+            Log Out
+          </Text>
+        </TouchableOpacity>
     </SafeAreaView>
   );
 }

@@ -271,7 +271,7 @@
   }
 
   .profile-card {
-    @apply rounded-3xl border p-5;
+    @apply rounded-3xl border p-5 m-2;
   }
 
   .profile-footer {

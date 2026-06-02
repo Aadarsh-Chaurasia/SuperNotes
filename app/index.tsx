@@ -1,12 +1,20 @@
 import { View, Text } from "react-native";
-import { Link } from "expo-router";
+import { Link, Redirect } from "expo-router";
 import { styled } from "nativewind";
 import {SafeAreaView as RNSafeAreaView} from "react-native-safe-area-context";
+import { useAuth } from "@/context/AuthProvider";
 
 const SafeAreaView = styled(RNSafeAreaView);
 
 
 export default function Index() {
+  const { session, loading } = useAuth();
+  
+    if (loading) return null;
+  
+    if (session) {
+      return <Redirect href="/(tabs)/home" />;
+    }
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-slate-950">
       <View className="rounded-3xl bg-blue-500 px-8 py-6 shadow-lg">
