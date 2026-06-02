@@ -1,8 +1,124 @@
-import {Text} from "react-native";
+import { useTheme } from "@/context/ThemeProvider";
+import { profileStyles } from "@/styles/profile.styles";
+import {
+    themeOptions,
+    themePalette,
+    type ThemeKey,
+} from "@/styles/theme.styles";
+import { styled } from "nativewind";
+import { Pressable, Text, View } from "react-native";
+import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
+const SafeAreaView = styled(RNSafeAreaView);
 
-export default function profile(){
-    return(
-        <Text>Home</Text>
-    )
+type ThemeOption = {
+  key: ThemeKey;
+  label: string;
+  description: string;
+};
+
+export default function Profile() {
+  const { theme, setTheme } = useTheme();
+  const currentTheme = themePalette[theme as ThemeKey];
+
+  return (
+    <SafeAreaView
+      className="profile-screen"
+      style={[
+        profileStyles.screen,
+        { backgroundColor: currentTheme.background },
+      ]}
+    >
+      <View style={profileStyles.page}>
+        <Text style={[profileStyles.title, { color: currentTheme.text }]}>
+          Profile
+        </Text>
+        <Text style={[profileStyles.subtitle, { color: currentTheme.text }]}>
+          Choose the theme to use across the app.
+        </Text>
+
+        <View className="profile-section">
+          {themeOptions.map((item: ThemeOption) => {
+            const isActive = item.key === theme;
+            const optionTheme = themePalette[item.key as ThemeKey];
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => void setTheme(item.key)}
+                className="profile-card"
+                style={[
+                  profileStyles.card,
+                  {
+                    backgroundColor: optionTheme.surface,
+                    borderColor: isActive
+                      ? currentTheme.accent
+                      : optionTheme.border,
+                    shadowColor: isActive ? currentTheme.accent : "#000",
+                    shadowOpacity: isActive ? 0.15 : 0,
+                    shadowOffset: { width: 0, height: 12 },
+                    shadowRadius: 18,
+                    elevation: isActive ? 10 : 0,
+                  },
+                ]}
+              >
+                <Text
+                  style={[profileStyles.cardTitle, { color: optionTheme.text }]}
+                >
+                  {item.label}
+                </Text>
+                <Text
+                  style={[
+                    profileStyles.cardDescription,
+                    { color: optionTheme.muted },
+                  ]}
+                >
+                  {item.description}
+                </Text>
+                {isActive ? (
+                  <View
+                    style={[
+                      profileStyles.selectedBadge,
+                      { backgroundColor: currentTheme.accent },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        profileStyles.selectedBadgeText,
+                        { color: currentTheme.selectedText },
+                      ]}
+                    >
+                      Selected
+                    </Text>
+                  </View>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View
+          className="profile-footer"
+          style={[
+            profileStyles.footer,
+            {
+              backgroundColor: currentTheme.surface,
+              borderColor: currentTheme.border,
+            },
+          ]}
+        >
+          <Text
+            style={[profileStyles.footerTitle, { color: currentTheme.text }]}
+          >
+            Theme selection
+          </Text>
+          <Text
+            style={[profileStyles.footerText, { color: currentTheme.muted }]}
+          >
+            Your chosen theme is saved locally and will be available for the
+            next design pass.
+          </Text>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
 }

@@ -8,6 +8,7 @@ import { styled } from "nativewind";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 
 import NoteCard from "@/components/notes/NoteCard";
+import { useTheme } from "@/context/ThemeProvider";
 import { getNotes } from "@/controllers/notes.controller";
 
 const SafeAreaView = styled(RNSafeAreaView);
@@ -56,28 +57,40 @@ export default function Home() {
 
   const otherNotes = filteredNotes.filter((note) => !note.pinned);
 
+  const { palette } = useTheme();
+
   return (
-    <SafeAreaView className="flex-1 bg-[#F7F8FC]">
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: palette.background }}
+    >
       {/* Header */}
       <View className="px-5 pt-4">
         <View className="flex-row items-center">
-          <Text className="text-4xl font-bold text-black">Notes</Text>
+          <Text className="text-4xl font-bold" style={{ color: palette.text }}>
+            Notes
+          </Text>
 
-          <View className="ml-4 flex-1 flex-row items-center rounded-2xl bg-white px-4 py-3">
-            <Search size={18} color="#737373" />
+          <View
+            className="ml-4 flex-1 flex-row items-center rounded-2xl px-4 py-3"
+            style={{ backgroundColor: palette.surface }}
+          >
+            <Search size={18} color={palette.icon} />
 
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Search notes..."
+              placeholderTextColor={palette.placeholder}
               className="ml-3 flex-1"
+              style={{ color: palette.text }}
             />
 
             <Pressable
               onPress={() => router.push({ pathname: "/(tabs)/profile" })}
               className="ml-3 rounded-full p-2"
             >
-              <Settings size={20} color="#737373" />
+              <Settings size={20} color={palette.icon} />
             </Pressable>
           </View>
         </View>
@@ -86,7 +99,12 @@ export default function Home() {
       {/* Pinned */}
       {pinnedNotes.length > 0 && (
         <>
-          <Text className="px-5 pt-6 pb-3 text-xl font-bold">Pinned</Text>
+          <Text
+            className="px-5 pt-6 pb-3 text-xl font-bold"
+            style={{ color: palette.text }}
+          >
+            Pinned
+          </Text>
 
           <FlatList
             data={pinnedNotes}
@@ -108,7 +126,12 @@ export default function Home() {
       )}
 
       {/* Other */}
-      <Text className="px-5 pt-4 pb-3 text-xl font-bold">Other</Text>
+      <Text
+        className="px-5 pt-4 pb-3 text-xl font-bold"
+        style={{ color: palette.text }}
+      >
+        Other
+      </Text>
 
       <FlatList
         data={otherNotes}
@@ -132,9 +155,10 @@ export default function Home() {
       {/* FAB */}
       <Pressable
         onPress={() => router.push("/create")}
-        className="absolute bottom-8 right-6 h-16 w-16 items-center justify-center rounded-full bg-black"
+        className="absolute bottom-8 right-6 h-16 w-16 items-center justify-center rounded-full"
+        style={{ backgroundColor: palette.accent }}
       >
-        <Plus size={28} color="white" />
+        <Plus size={28} color={palette.selectedText} />
       </Pressable>
     </SafeAreaView>
   );

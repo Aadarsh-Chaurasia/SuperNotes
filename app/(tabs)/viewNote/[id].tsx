@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     Alert,
+    Platform,
     ScrollView,
     Text,
     TextInput,
@@ -11,15 +12,18 @@ import {
 } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
+import { useTheme } from "@/context/ThemeProvider";
 import {
     deleteNote,
     getNoteById,
     updateNote,
 } from "@/controllers/notes.controller";
-import { markdownStyles } from "@/styles/note.styles";
+import { createMarkdownStyles } from "@/styles/note.styles";
 
-import { ChevronLeft, Edit3, Pin, Search, Trash2 } from "lucide-react-native";
+import { ChevronLeft, Download, Edit3, Pin, Search, Trash2 } from "lucide-react-native";
 
 const ViewNote = () => {
   const params = useLocalSearchParams<{ id: string }>();
@@ -32,6 +36,58 @@ const ViewNote = () => {
   const [isPinned, setIsPinned] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+  const { palette } = useTheme();
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 3000);
+  };
+
+  const handleExport = async () => {
+    try {
+      if (!title) {
+        Alert.alert("Error", "Note title is required to export.");
+        return;
+      }
+
+      const cleanTitle = title.replace(/[/\\?%*:|"<>]/g, "-") || "note";
+      const fileName = `${cleanTitle}.md`;
+      const markdownContent = `# ${title}\n\n${note}`;
+
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      await FileSystem.writeAsStringAsync(fileUri, markdownContent);
+
+      if (Platform.OS === "android") {
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (permissions.granted) {
+          const directoryUri = permissions.directoryUri;
+          const safUri = await FileSystem.StorageAccessFramework.createFileAsync(
+            directoryUri,
+            fileName,
+            "text/markdown"
+          );
+          await FileSystem.writeAsStringAsync(safUri, markdownContent);
+          showToast(`Exported successfully as ${fileName}`);
+        } else {
+          await Sharing.shareAsync(fileUri);
+          showToast(`Exported successfully`);
+        }
+      } else {
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri);
+          showToast(`Exported successfully`);
+        } else {
+          Alert.alert("Error", "Sharing is not available on this device.");
+        }
+      }
+    } catch (err) {
+      console.error("Export error:", err);
+      Alert.alert("Error", "Failed to export note.");
+    }
+  };
 
   function escapeRegExp(str: string) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -53,7 +109,13 @@ const ViewNote = () => {
         );
       }
       parts.push(
-        <Text key={`match-${i++}`} style={{ backgroundColor: "#fff59d" }}>
+        <Text
+          key={`match-${i++}`}
+          style={{
+            backgroundColor: palette.highlightBackground,
+            color: palette.text,
+          }}
+        >
           {text.slice(start, end)}
         </Text>,
       );
@@ -135,53 +197,93 @@ const ViewNote = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#EEF0F6]">
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: palette.background }}
+    >
+      {toastMessage ? (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 40,
+            left: 20,
+            right: 20,
+            backgroundColor: palette.accentStrong,
+            padding: 16,
+            borderRadius: 16,
+            zIndex: 9999,
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Text style={{ color: palette.selectedText, fontWeight: "600" }}>
+            {toastMessage}
+          </Text>
+        </View>
+      ) : null}
+
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4">
         <TouchableOpacity
-          className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+          className="h-11 w-11 items-center justify-center rounded-full shadow-sm"
           onPress={() => router.back()}
+          style={{ backgroundColor: palette.surface }}
         >
-          <ChevronLeft size={20} color="#111827" />
+          <ChevronLeft size={20} color={palette.icon} />
         </TouchableOpacity>
 
         <View className="flex-row gap-3">
           <TouchableOpacity
-            className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+            className="h-11 w-11 items-center justify-center rounded-full shadow-sm"
             onPress={() => setShowSearch((s) => !s)}
+            style={{ backgroundColor: palette.surface }}
           >
-            <Search size={18} color="#111827" />
+            <Search size={18} color={palette.icon} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+            className="h-11 w-11 items-center justify-center rounded-full shadow-sm"
             onPress={handleTogglePin}
+            style={{ backgroundColor: palette.surface }}
           >
             <Pin
               size={18}
-              color={isPinned ? "#000" : "#9CA3AF"}
-              fill={isPinned ? "#000" : "none"}
+              color={isPinned ? palette.accentStrong : palette.placeholder}
+              fill={isPinned ? palette.accentStrong : "none"}
             />
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+            className="h-11 w-11 items-center justify-center rounded-full shadow-sm"
             onPress={handleDelete}
             disabled={isDeleting}
+            style={{ backgroundColor: palette.surface }}
           >
-            <Trash2 size={18} color="#e11d48" />
+            <Trash2 size={18} color={palette.accentStrong} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"
+            className="h-11 w-11 items-center justify-center rounded-full shadow-sm"
             onPress={() =>
               router.push({
                 pathname: "/(tabs)/updateNote/[id]",
                 params: { id: params.id },
               })
             }
+            style={{ backgroundColor: palette.surface }}
           >
-            <Edit3 size={18} color="#111827" />
+            <Edit3 size={18} color={palette.icon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="h-11 w-11 items-center justify-center rounded-full shadow-sm"
+            onPress={handleExport}
+            style={{ backgroundColor: palette.surface }}
+          >
+            <Download size={18} color={palette.icon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -191,22 +293,27 @@ const ViewNote = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search in note..."
-            placeholderTextColor="#9CA3AF"
-            className="rounded-2xl bg-white px-4 py-2"
+            placeholderTextColor={palette.placeholder}
+            className="rounded-2xl px-4 py-2"
+            style={{ backgroundColor: palette.surface, color: palette.text }}
           />
         </View>
       ) : null}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={{ backgroundColor: palette.background }}
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingBottom: 80,
+          backgroundColor: palette.background,
+          flexGrow: 1,
         }}
       >
         <TouchableOpacity
           activeOpacity={0.95}
-          className="overflow-hidden rounded-[40px] bg-white px-6 py-8 shadow-sm"
+          className="overflow-hidden rounded-[40px] px-6 py-8 shadow-sm"
+          style={{ backgroundColor: palette.surface }}
           onPress={() =>
             router.push({
               pathname: "/(tabs)/updateNote/[id]",
@@ -216,8 +323,14 @@ const ViewNote = () => {
         >
           <View className="flex-row items-center justify-between gap-3">
             {category ? (
-              <View className="rounded-full bg-emerald-700 px-4 py-2">
-                <Text className="text-xs font-semibold text-white">
+              <View
+                className="rounded-full px-4 py-2"
+                style={{ backgroundColor: palette.accent }}
+              >
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: palette.selectedText }}
+                >
                   {category}
                 </Text>
               </View>
@@ -225,22 +338,28 @@ const ViewNote = () => {
               <View className="h-6" />
             )}
 
-            <Text className="text-sm font-medium text-gray-500">
+            <Text
+              className="text-sm font-medium"
+              style={{ color: palette.muted }}
+            >
               {updatedAt}
             </Text>
           </View>
 
-          <Text className="mt-6 text-4xl font-bold leading-tight text-[#111827]">
+          <Text
+            className="mt-6 text-4xl font-bold leading-tight"
+            style={{ color: palette.text }}
+          >
             {title}
           </Text>
 
           <View className="mt-8 space-y-5">
             {searchQuery ? (
-              <Text style={{ color: "#111827", lineHeight: 24 }}>
+              <Text style={{ color: palette.text, lineHeight: 24 }}>
                 {renderHighlightedParts(stripMarkdown(note || ""), searchQuery)}
               </Text>
             ) : (
-              <Markdown style={markdownStyles}>{note}</Markdown>
+              <Markdown style={createMarkdownStyles(palette)}>{note}</Markdown>
             )}
           </View>
         </TouchableOpacity>

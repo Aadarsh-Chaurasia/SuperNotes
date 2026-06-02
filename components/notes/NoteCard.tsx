@@ -1,5 +1,6 @@
-import { Pressable, Text } from "react-native";
+import { useTheme } from "@/context/ThemeProvider";
 import { router } from "expo-router";
+import { Pressable, Text } from "react-native";
 
 type NoteCardProps = {
   id: number;
@@ -16,12 +17,10 @@ function getPreview(markdown: string) {
     .trim();
 }
 
-export default function NoteCard({
-  id,
-  title,
-  note,
-}: NoteCardProps) {
+export default function NoteCard({ id, title, note }: NoteCardProps) {
   const preview = getPreview(note);
+
+  const { palette } = useTheme();
 
   return (
     <Pressable
@@ -31,19 +30,21 @@ export default function NoteCard({
           params: { id },
         })
       }
-      className="flex-1 rounded-3xl border border-neutral-200 bg-white p-4"
+      className="flex-1 rounded-3xl border p-4"
+      style={{
+        backgroundColor: palette.card,
+        borderColor: palette.border,
+      }}
     >
       <Text
-        className="text-lg font-bold text-neutral-900"
+        className="text-lg font-bold"
+        style={{ color: palette.text }}
         numberOfLines={2}
       >
         {title}
       </Text>
 
-      <Text
-        className="mt-3 text-neutral-600"
-        numberOfLines={8}
-      >
+      <Text className="mt-3" style={{ color: palette.muted }} numberOfLines={8}>
         {preview}
       </Text>
     </Pressable>
