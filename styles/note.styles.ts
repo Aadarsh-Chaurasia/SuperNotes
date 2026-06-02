@@ -11,25 +11,25 @@ export const markdownStyles = {
   },
 
   heading1: {
-    fontSize: 34,
+    fontSize: 26,
     fontWeight: "700",
-    marginBottom: 20,
+    marginBottom: 16,
     color: "#111827",
   },
 
   heading2: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "600",
-    marginBottom: 16,
-    marginTop: 24,
+    marginBottom: 12,
+    marginTop: 18,
     color: "#111827",
   },
 
   heading3: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "600",
     marginBottom: 12,
-    marginTop: 20,
+    marginTop: 18,
   },
 
   code_block: {

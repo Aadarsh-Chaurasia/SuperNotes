@@ -1,19 +1,14 @@
+import { useIsFocused } from "@react-navigation/native";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 
 import { router } from "expo-router";
+import { Plus, Search, Settings } from "lucide-react-native";
 import { styled } from "nativewind";
 import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
-import { Plus, Search, Settings } from "lucide-react-native";
 
-import { getNotes } from "@/controllers/notes.controller";
 import NoteCard from "@/components/notes/NoteCard";
+import { getNotes } from "@/controllers/notes.controller";
 
 const SafeAreaView = styled(RNSafeAreaView);
 
@@ -31,16 +26,17 @@ type Note = {
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState("");
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    loadNotes();
-  }, []);
+    if (isFocused) loadNotes();
+  }, [isFocused]);
 
   const loadNotes = async () => {
     try {
       const data = await getNotes();
 
-      console.log("Fetched Notes:", data);
+      // console.log("Fetched Notes:", data);
 
       if (Array.isArray(data)) {
         setNotes(data);
@@ -52,19 +48,13 @@ export default function Home() {
 
   const filteredNotes = useMemo(() => {
     return notes.filter((note) =>
-      `${note.title} ${note.note}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      `${note.title} ${note.note}`.toLowerCase().includes(search.toLowerCase()),
     );
   }, [notes, search]);
 
-  const pinnedNotes = filteredNotes.filter(
-    (note) => note.pinned
-  );
+  const pinnedNotes = filteredNotes.filter((note) => note.pinned);
 
-  const otherNotes = filteredNotes.filter(
-    (note) => !note.pinned
-  );
+  const otherNotes = filteredNotes.filter((note) => !note.pinned);
 
   return (
     <SafeAreaView className="flex-1 bg-[#F7F8FC]">
@@ -84,9 +74,7 @@ export default function Home() {
             />
 
             <Pressable
-              onPress={() =>
-                router.push({ pathname: "/(tabs)/profile" })
-              }
+              onPress={() => router.push({ pathname: "/(tabs)/profile" })}
               className="ml-3 rounded-full p-2"
             >
               <Settings size={20} color="#737373" />
@@ -98,9 +86,7 @@ export default function Home() {
       {/* Pinned */}
       {pinnedNotes.length > 0 && (
         <>
-          <Text className="px-5 pt-6 pb-3 text-xl font-bold">
-            Pinned
-          </Text>
+          <Text className="px-5 pt-6 pb-3 text-xl font-bold">Pinned</Text>
 
           <FlatList
             data={pinnedNotes}
@@ -114,11 +100,7 @@ export default function Home() {
             }}
             renderItem={({ item }) => (
               <View style={{ flex: 1 }}>
-                <NoteCard
-                  id={item.id}
-                  title={item.title}
-                  note={item.note}
-                />
+                <NoteCard id={item.id} title={item.title} note={item.note} />
               </View>
             )}
           />
@@ -126,9 +108,7 @@ export default function Home() {
       )}
 
       {/* Other */}
-      <Text className="px-5 pt-4 pb-3 text-xl font-bold">
-        Other
-      </Text>
+      <Text className="px-5 pt-4 pb-3 text-xl font-bold">Other</Text>
 
       <FlatList
         data={otherNotes}
@@ -144,11 +124,7 @@ export default function Home() {
         }}
         renderItem={({ item }) => (
           <View style={{ flex: 1 }}>
-            <NoteCard
-              id={item.id}
-              title={item.title}
-              note={item.note}
-            />
+            <NoteCard id={item.id} title={item.title} note={item.note} />
           </View>
         )}
       />
@@ -158,10 +134,7 @@ export default function Home() {
         onPress={() => router.push("/create")}
         className="absolute bottom-8 right-6 h-16 w-16 items-center justify-center rounded-full bg-black"
       >
-        <Plus
-          size={28}
-          color="white"
-        />
+        <Plus size={28} color="white" />
       </Pressable>
     </SafeAreaView>
   );
