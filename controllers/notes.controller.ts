@@ -2,10 +2,12 @@ import { supabase } from "@/lib/supabase";
 
 export type Note = {
     id: number;
-    user_id: string;
-    created_at: string;
     title: string;
     note: string;
+    pinned: boolean;
+    createdAt: string;
+    updatedAt: string;
+    category?: string;
 };
 
 export async function createNote(title: string, note: string): Promise<Note> {
@@ -58,7 +60,7 @@ export async function getNotes() {
 }
 
 
-export async function updateNote( id: number, updates: { title?: string; note?: string; } ) {
+export async function updateNote(id: number, updates: { title?: string; note?: string; category?: string }) {
     const { data, error } = await supabase
         .from("notes")
         .update(updates)

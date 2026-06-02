@@ -37,41 +37,8 @@ export default function TabLayout() {
     return <Redirect href="/(auth)/signin" />;
   }
 
-  return (
-  <Tabs 
-            screenOptions={{
-                headerShown: false, // Hide the header
-                tabBarShowLabel: false, // Hide the name on icon
-                tabBarStyle: { // Custom styles for the tab bar
-                    position: 'absolute',
-                    bottom: Math.max(insets.bottom, tabBar.horizontalInset), // Ensure the tab bar is above the safe area
-                    height: tabBar.height,
-                    marginHorizontal: tabBar.horizontalInset,
-                    borderRadius: tabBar.radius,
-                    backgroundColor: colors.primary,
-                    borderTopWidth: 0,
-                    elevation: 0,
-                },
-                tabBarItemStyle: { // Custom styles for the tab bar items
-                    paddingVertical: tabBar.height / 2 - tabBar.iconFrame / 1.6, // Center the icon vertically
-                },
-                tabBarIconStyle: { // Custom styles for the tab bar icons
-                    width: tabBar.iconFrame,
-                    height: tabBar.iconFrame,
-                    alignItems: 'center',
-                },
-            }}
-        >
-            {tabs.map((tab) => (
-            <Tabs.Screen 
-                key={tab.name} 
-                name={tab.name} 
-                options={{
-                    title: tab.title,
-                    tabBarIcon: ({focused}) => 
-                        <TabIcon focused={focused} icon={tab.icon} />
-                }} />
-            ))}
-        </Tabs>
-  );
+//   
+return (
+    <Stack screenOptions={{ headerShown: false }} />
+)
 }
